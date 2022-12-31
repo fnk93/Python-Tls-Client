@@ -1,15 +1,19 @@
 # Python-TLS-Client
+
 Python-TLS-Client is an advanced HTTP library based on requests and tls-client.
 
-# Installation
-```
+## Installation
+
+```bash
 pip install tls-client
 ```
 
-# Examples
+## Examples
+
 The syntax is inspired by [requests](https://github.com/psf/requests), so its very similar and there are only very few things that are different.
 
 Example 1 - Preset:
+
 ```python
 import tls_client
 
@@ -35,6 +39,7 @@ res = session.get(
 ```
 
 Example 2 - Custom:
+
 ```python
 import tls_client
 
@@ -91,36 +96,50 @@ res = session.post(
 )
 ```
 
-# Pyinstaller / Pyarmor
+## Pyinstaller / Pyarmor
+
 **If you want to pack the library with Pyinstaller or Pyarmor, make sure to add this to your command:**
 
 Linux - Ubuntu / x86:
-```
+
+```bash
 --add-binary '{path_to_library}/tls_client/dependencies/tls-client-x86.so:tls_client/dependencies'
 ```
 
 Linux Alpine / AMD64:
-```
+
+```bash
 --add-binary '{path_to_library}/tls_client/dependencies/tls-client-amd64.so:tls_client/dependencies'
 ```
 
 MacOS M1 and older:
-```
+
+```bash
 --add-binary '{path_to_library}/tls_client/dependencies/tls-client-x86.dylib:tls_client/dependencies'
 ```
 
 MacOS M2:
-```
+
+```bash
 --add-binary '{path_to_library}/tls_client/dependencies/tls-client-arm64.dylib:tls_client/dependencies'
 ```
 
 Windows:
-```
+
+```bash
 --add-binary '{path_to_library}/tls_client/dependencies/tls-client.dll;tls_client/dependencies'
 ```
 
-# Acknowledgements
+## Acknowledgements
+
 Big shout out to [Bogdanfinn](https://github.com/bogdanfinn) for open sourcing his [tls-client](https://github.com/bogdanfinn/tls-client) in Golang.
 Also to [requests](https://github.com/psf/requests), as most of the cookie handling is copied from it. :'D
-<br/>
+
 I wanted to keep the syntax as similar as possible to requests, as most people use it and are familiar with it!
+
+## Development
+
+```bash
+git submodule init
+git submodule update
+```
