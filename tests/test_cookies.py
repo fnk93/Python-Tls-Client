@@ -7,12 +7,14 @@ def test_cookies():
         client_identifier=client_identifier,
         random_tls_extension_order=True,
     )
-    print(session.get('https://httpbin.org/cookies/set/testcookie/12345', without_cookiejar=True))
-    print(session.get('https://httpbin.org/cookies', without_cookiejar=True).json())
+    print(session.get('https://httpbin.org/cookies/set/testcookie/12345'))
+    print(session.get('https://httpbin.org/cookies').json())
     print(session.cookies.get_dict())
-    print(session.cookies.clear())
+    print(session.get_cookies(url='https://httpbin.org'))
+    print(session.clear_cookies())
     print(session.cookies.get_dict())
-    print(session.get('https://httpbin.org/cookies', without_cookiejar=True).json())
+    print(session.get_cookies(url='https://httpbin.org'))
+    print(session.get('https://httpbin.org/cookies').json())
 
 
 if __name__ == '__main__':
