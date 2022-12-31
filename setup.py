@@ -5,10 +5,11 @@ import glob
 import os
 
 data_files = []
-directories = glob.glob('tls_client/dependencies/')
+# directories = glob.glob('tls_client/dependencies/')
+directories = glob.glob('shared_lib/cffi_dist/dist/')
 for directory in directories:
     files = glob.glob(directory+'*')
-    data_files.append(('tls_client/dependencies', files))
+    data_files.append(('shared_lib/cffi_dist/dist/', files))
 
 about = {}
 here = os.path.abspath(os.path.dirname(__file__))
