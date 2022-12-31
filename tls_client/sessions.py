@@ -1,4 +1,4 @@
-from tls_client.cffi import request, close_session, free_memory
+from tls_client.cffi import request, close_session, free_memory, get_cookies_from_session
 from tls_client.cookies import cookiejar_from_dict, get_cookie_header, merge_cookies, extract_cookies_to_jar
 from tls_client.exceptions import TLSClientExeption
 from tls_client.response import build_response
@@ -263,19 +263,19 @@ class Session:
         else:
             request_body = data
             content_type = None
-        # set content type if it isn't set
-        if content_type is not None and "content-type" not in self.headers:
-            self.headers["Content-Type"] = content_type
 
         # --- Headers --------------------------------------------------------------------------------------------------
         # merge headers of session and of the request
         if headers is not None:
-            for header_key, header_value in headers.items():
+            for header_key, header_value in self.headers.items():
                 # check if all header keys and values are strings
                 if type(header_key) is str and type(header_value) is str:
-                    self.headers[header_key] = header_value
+                    headers[header_key] = headers.get(header_key, header_value)
         else:
-            headers = self.headers
+            headers = self.headers.copy()
+        # set content type if it isn't set
+        if content_type is not None and "content-type" not in headers:
+            headers["Content-Type"] = content_type
 
         # --- Header Order
         if header_order is None:
@@ -285,13 +285,11 @@ class Session:
         cookies = cookies or {}
         # Merge with session cookies
         cookies = merge_cookies(self.cookies, cookies)
-
         cookie_header = get_cookie_header(
             request_url=url,
             request_headers=headers,
             cookie_jar=cookies
         )
-        print(cookie_header)
         if cookie_header is not None:
             headers["Cookie"] = cookie_header
 
@@ -428,11 +426,33 @@ class Session:
         """Sends a DELETE request"""
         return self.execute_request(method="DELETE", url=url, **kwargs)
 
+    def get_cookies(
+        self,
+        url: str,
+    ):
+        get_cookies_payload = {
+            'sessionId': self._session_id,
+            'url': url,
+        }
+
+        # this is a pointer to the response
+        get_cookies_response = get_cookies_from_session(dumps(get_cookies_payload).encode('utf-8'))
+        # dereference the pointer to a byte array
+        get_cookies_response_bytes = ctypes.string_at(get_cookies_response)
+        # convert our byte array to a string (tls client returns json)
+        get_cookies_response_string = get_cookies_response_bytes.decode('utf-8')
+        # convert response string to json
+        get_cookies_response_object = loads(get_cookies_response_string)
+        free_memory(get_cookies_response_object['id'].encode('utf-8'))
+        return get_cookies_response_object
+
     def clear_cookies(
         self,
     ):
         """Clear cookies"""
-        ...
+        self.cookies.clear()
+        self.close()
+        self._session_id = str(uuid.uuid4())
 
     def close(
         self,
