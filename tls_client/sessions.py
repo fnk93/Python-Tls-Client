@@ -1,9 +1,9 @@
-from .cffi import request
-from .cookies import cookiejar_from_dict, get_cookie_header, merge_cookies, extract_cookies_to_jar
-from .exceptions import TLSClientExeption
-from .response import build_response
-from .structures import CaseInsensitiveDict
-from .__version__ import __version__
+from tls_client.cffi import request, close_session, free_memory
+from tls_client.cookies import cookiejar_from_dict, get_cookie_header, merge_cookies, extract_cookies_to_jar
+from tls_client.exceptions import TLSClientExeption
+from tls_client.response import build_response
+from tls_client.structures import CaseInsensitiveDict
+from tls_client.__version__ import __version__
 
 from typing import Any, Optional, Union
 from json import dumps, loads
@@ -23,15 +23,15 @@ class Session:
         supported_signature_algorithms: Optional[list] = None,  # Optional[list[str]]
         supported_versions: Optional[list] = None,  # Optional[list[str]]
         key_share_curves: Optional[list] = None,  # Optional[list[str]]
-        cert_compression_algo: str = None,
+        cert_compression_algo: Optional[str] = None,
         pseudo_header_order: Optional[list] = None,  # Optional[list[str]
         connection_flow: Optional[int] = None,
         priority_frames: Optional[list] = None,
         header_order: Optional[list] = None,  # Optional[list[str]]
         header_priority: Optional[dict] = None,  # Optional[list[str]]
-        random_tls_extension_order: Optional = False,
-        force_http1: Optional = False,
-        is_byte_request: Optional = False
+        random_tls_extension_order: Optional[bool] = False,
+        force_http1: Optional[bool] = False,
+        is_byte_request: Optional[bool] = False
     ) -> None:
         self._session_id = str(uuid.uuid4())
         # --- Standard Settings ----------------------------------------------------------------------------------------
@@ -235,12 +235,14 @@ class Session:
         params: Optional[dict] = None,  # Optional[dict[str, str]]
         data: Optional[Union[str, dict]] = None,
         headers: Optional[dict] = None,  # Optional[dict[str, str]]
+        header_order: Optional[list[str]] = None,
         cookies: Optional[dict] = None,  # Optional[dict[str, str]]
         json: Optional[dict] = None,  # Optional[dict]
         allow_redirects: Optional[bool] = False,
         insecure_skip_verify: Optional[bool] = False,
         timeout_seconds: Optional[int] = 30,
-        proxy: Optional[dict] = None  # Optional[dict[str, str]]
+        proxy: Optional[dict] = None,  # Optional[dict[str, str]]
+        without_cookiejar: Optional[bool] = False,
     ):
         # --- URL ------------------------------------------------------------------------------------------------------
         # Prepare URL - add params to url
@@ -275,6 +277,10 @@ class Session:
         else:
             headers = self.headers
 
+        # --- Header Order
+        if header_order is None:
+            header_order = self.header_order
+
         # --- Cookies --------------------------------------------------------------------------------------------------
         cookies = cookies or {}
         # Merge with session cookies
@@ -285,6 +291,7 @@ class Session:
             request_headers=headers,
             cookie_jar=cookies
         )
+        print(cookie_header)
         if cookie_header is not None:
             headers["Cookie"] = cookie_header
 
@@ -302,9 +309,11 @@ class Session:
         request_payload = {
             "sessionId": self._session_id,
             "followRedirects": allow_redirects,
+            "withoutCookieJar": without_cookiejar,
+            "withDefaultCookieJar": False,
             "forceHttp1": self.force_http1,
             "headers": dict(headers),
-            "headerOrder": self.header_order,
+            "headerOrder": header_order,
             "insecureSkipVerify": insecure_skip_verify,
             "isByteRequest": self.is_byte_request,
             "proxyUrl": proxy,
@@ -340,6 +349,8 @@ class Session:
         response_string = response_bytes.decode('utf-8')
         # convert response string to json
         response_object = loads(response_string)
+        # print(response_object)
+        free_memory(response_object['id'].encode('utf-8'))
 
         # --- Response -------------------------------------------------------------------------------------------------
         # Error handling
@@ -416,3 +427,29 @@ class Session:
     ):
         """Sends a DELETE request"""
         return self.execute_request(method="DELETE", url=url, **kwargs)
+
+    def clear_cookies(
+        self,
+    ):
+        """Clear cookies"""
+        ...
+
+    def close(
+        self,
+    ):
+        """Close session."""
+
+        close_session_payload = {
+            'sessionId': self._session_id
+        }
+
+        # this is a pointer to the response
+        close_response = close_session(dumps(close_session_payload).encode('utf-8'))
+        # dereference the pointer to a byte array
+        close_response_bytes = ctypes.string_at(close_response)
+        # convert our byte array to a string (tls client returns json)
+        close_response_string = close_response_bytes.decode('utf-8')
+        # convert response string to json
+        close_response_object = loads(close_response_string)
+        free_memory(close_response_object['id'].encode('utf-8'))
+        return close_response_object
