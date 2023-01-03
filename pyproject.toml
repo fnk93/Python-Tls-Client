@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-tls-client"
-version = "0.1.0"
+version = "0.1.7"
 description = ""
 authors = ["fnk93 <f.krueger1993@gmail.com>"]
 readme = "README.md"
