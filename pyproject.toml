@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "python-tls-client"
+version = "0.1.0"
+description = ""
+authors = ["fnk93 <f.krueger1993@gmail.com>"]
+readme = "README.md"
+packages = [{include = "tls_client"}]
+include = ["shared_lib/cffi_dist/dist/*"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^0.991"
+psutil = "^5.9.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
