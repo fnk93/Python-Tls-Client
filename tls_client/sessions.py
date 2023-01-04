@@ -44,7 +44,7 @@ class Session:
         self.headers = CaseInsensitiveDict(
             {
                 "User-Agent": f"tls-client/{__version__}",
-                "Accept-Encoding": "gzip, deflate, br",
+                # "Accept-Encoding": "gzip, deflate, br",
                 "Accept": "*/*",
                 "Connection": "keep-alive",
             }
