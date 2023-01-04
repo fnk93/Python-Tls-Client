@@ -278,14 +278,12 @@ class Session:
 
         # --- Headers --------------------------------------------------------------------------------------------------
         # merge headers of session and of the request
+        req_headers = self.headers.copy()
         if headers is not None:
-            req_headers = CaseInsensitiveDict(data=headers)
-            for header_key, header_value in self.headers.items():
+            for header_key, header_value in headers.items():
                 # check if all header keys and values are strings
                 if type(header_key) is str and type(header_value) is str:
                     req_headers[header_key] = headers.get(header_key, header_value)
-        else:
-            req_headers = self.headers.copy()
         # set content type if it isn't set
         if content_type is not None and "content-type" not in req_headers:
             req_headers["Content-Type"] = content_type
