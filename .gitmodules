@@ -1,3 +1,0 @@
-[submodule "shared_lib"]
-	path = shared_lib
-	url = git@github.com:bogdanfinn/tls-client.git
