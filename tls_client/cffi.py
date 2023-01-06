@@ -18,7 +18,13 @@ else:
     # TODO: check this
     platform_name = 'linux'
     file_type = 'so'
-    file_arch = 'ubuntu-amd64' if "x86" in machine() else 'arm64'
+    if machine() == "aarch64":
+        file_arch = 'arm64'
+    elif "x86" in machine():
+        file_arch = 'x86'
+        raise NotImplementedError()
+    else:
+        file_arch = 'ubuntu-amd64'
 
 # root_dir = os.path.abspath(os.path.dirname(__file__))
 root_dir = Path(__file__).parent.parent
