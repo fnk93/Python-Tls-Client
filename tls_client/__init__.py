@@ -12,4 +12,5 @@
 # tls-client: https://github.com/bogdanfinn/tls-client
 # requests: https://github.com/psf/requests
 
-from .sessions import Session
+from tls_client.sessions import Session
+from tls_client.response import Response
