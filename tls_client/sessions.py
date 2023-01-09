@@ -408,7 +408,7 @@ class Session:
     def post(
         self,
         url: str,
-        data: Optional[Union[str, dict]] = None,
+        data: Optional[Union[str, dict, bytes, bytearray]] = None,
         json: Optional[dict] = None,
         **kwargs: Any
     ):
@@ -418,7 +418,7 @@ class Session:
     def put(
         self,
         url: str,
-        data: Optional[Union[str, dict]] = None,
+        data: Optional[Union[str, dict, bytes, bytearray]] = None,
         json: Optional[dict] = None,
         **kwargs: Any
     ):
@@ -428,7 +428,7 @@ class Session:
     def patch(
         self,
         url: str,
-        data: Optional[Union[str, dict]] = None,
+        data: Optional[Union[str, dict, bytes, bytearray]] = None,
         json: Optional[dict] = None,
         **kwargs: Any
     ):
