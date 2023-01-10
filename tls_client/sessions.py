@@ -2,7 +2,7 @@ import base64
 from tls_client.cffi import request, close_session, free_memory, get_cookies_from_session
 from tls_client.cookies import cookiejar_from_dict, get_cookie_header, merge_cookies, extract_cookies_to_jar
 from tls_client.exceptions import TLSClientExeption
-from tls_client.response import build_response
+from tls_client.response import Response, build_response
 from tls_client.structures import CaseInsensitiveDict
 from tls_client.__version__ import __version__
 
@@ -18,22 +18,21 @@ class Session:
     def __init__(
         self,
         client_identifier: Optional[str] = None,
-        headers: Optional[dict] = None,
+        headers: Optional[dict[str, str]] = None,
         ja3_string: Optional[str] = None,
-        h2_settings: Optional[dict] = None,  # Optional[dict[str, int]]
-        h2_settings_order: Optional[list] = None,  # Optional[list[str]]
-        supported_signature_algorithms: Optional[list] = None,  # Optional[list[str]]
-        supported_versions: Optional[list] = None,  # Optional[list[str]]
-        key_share_curves: Optional[list] = None,  # Optional[list[str]]
+        h2_settings: Optional[dict[str, int]] = None,
+        h2_settings_order: Optional[list[str]] = None,
+        supported_signature_algorithms: Optional[list[str]] = None,
+        supported_versions: Optional[list[str]] = None,
+        key_share_curves: Optional[list[str]] = None,
         cert_compression_algo: Optional[str] = None,
-        pseudo_header_order: Optional[list] = None,  # Optional[list[str]
+        pseudo_header_order: Optional[list[str]] = None,
         connection_flow: Optional[int] = None,
-        priority_frames: Optional[list] = None,
-        header_order: Optional[list] = None,  # Optional[list[str]]
-        header_priority: Optional[dict] = None,  # Optional[list[str]]
+        priority_frames: Optional[list[dict[Any, Any]]] = None,
+        header_order: Optional[list[str]] = None,
+        header_priority: Optional[dict[str, Any]] = None,
         random_tls_extension_order: Optional[bool] = False,
         force_http1: Optional[bool] = False,
-        # is_byte_request: Optional[bool] = False,
         debug: bool = False,
     ) -> None:
         self._session_id = str(uuid.uuid4())
@@ -238,21 +237,47 @@ class Session:
         self,
         method: str,
         url: str,
-        params: Optional[dict] = None,  # Optional[dict[str, str]]
+        params: Optional[dict[str, str]] = None,
         data: Optional[Union[str, dict, bytes, bytearray]] = None,
-        headers: Optional[dict] = None,  # Optional[dict[str, str]]
+        headers: Optional[dict[str, str]] = None,
         header_order: Optional[list[str]] = None,
-        cookies: Optional[dict] = None,  # Optional[dict[str, str]]
-        json: Optional[dict] = None,  # Optional[dict]
+        cookies: Optional[dict[str, str]] = None,
+        json: Optional[dict[Any, Any]] = None,
         allow_redirects: Optional[bool] = False,
         insecure_skip_verify: Optional[bool] = False,
         timeout_seconds: Optional[int] = 30,
         timeout_milliseconds: Optional[float] = None,
-        proxy: Optional[dict] = None,  # Optional[dict[str, str]]
+        proxy: Optional[Union[dict[str, str], str]] = None,
         without_cookiejar: Optional[bool] = False,
         is_byte_request: bool = False,
         is_byte_response: bool = False,
-    ):
+    ) -> Response:
+        """Execute a request via shared TLS library.
+
+        Args:
+            method: HTTP method.
+            url: Request URL.
+            params: Dictionary of params. Defaults to None.
+            data: Data to send. Defaults to None.
+            headers: Headers to use. Defaults to None.
+            header_order: Header order to use. Defaults to None.
+            cookies: Cookie dict. Defaults to None.
+            json: JSON dictionary. Defaults to None.
+            allow_redirects: Whether to allow and follow redirects. Defaults to False.
+            insecure_skip_verify: Whether to activate insecure skip verify. Defaults to False.
+            timeout_seconds: Request timeout in seconds. Defaults to 30.
+            timeout_milliseconds: Request timeout in milliseconds. Defaults to None.
+            proxy: Dictionary of proxies or proxy URL as string. Defaults to None.
+            without_cookiejar: Whether to not use a cookiejar. Defaults to False.
+            is_byte_request: Whether request is bytes. Defaults to False.
+            is_byte_response: Whether response should be in bytes. Defaults to False.
+
+        Raises:
+            TLSClientExeption: Error in shared library.
+
+        Returns:
+            Response object.
+        """
         # --- URL ------------------------------------------------------------------------------------------------------
         # Prepare URL - add params to url
         if params is not None:
@@ -385,62 +410,145 @@ class Session:
         self,
         url: str,
         **kwargs: Any
-    ):
-        """Sends a GET request"""
+    ) -> Response:
+        """Sends a GET request.
+
+        Args:
+            url: Request URL.
+            **kwargs: Arbitrary keyword arguments.
+
+        Raises:
+            TLSClientExeption: Error in shared library.
+
+        Returns:
+            A response object.
+        """
         return self.execute_request(method="GET", url=url, **kwargs)
 
     def options(
         self,
         url: str,
         **kwargs: Any
-    ):
-        """Sends a OPTIONS request"""
+    ) -> Response:
+        """Sends a OPTIONS request.
+
+        Args:
+            url: Request URL.
+            **kwargs: Arbitrary keyword arguments.
+
+        Raises:
+            TLSClientExeption: Error in shared library.
+
+        Returns:
+            A response object.
+        """
         return self.execute_request(method="OPTIONS", url=url, **kwargs)
 
     def head(
         self,
         url: str,
         **kwargs: Any
-    ):
-        """Sends a HEAD request"""
+    ) -> Response:
+        """Sends a HEAD request.
+
+        Args:
+            url: Request URL.
+            **kwargs: Arbitrary keyword arguments.
+
+        Raises:
+            TLSClientExeption: Error in shared library.
+
+        Returns:
+            A response object.
+        """
         return self.execute_request(method="HEAD", url=url, **kwargs)
 
     def post(
         self,
         url: str,
         data: Optional[Union[str, dict, bytes, bytearray]] = None,
-        json: Optional[dict] = None,
+        json: Optional[dict[Any, Any]] = None,
         **kwargs: Any
-    ):
-        """Sends a POST request"""
+    ) -> Response:
+        """Sends a POST request.
+
+        Args:
+            url: Request URL.
+            data: Data to send. Defaults to None.
+            json: JSON dictionary. Defaults to None.
+            **kwargs: Arbitrary keyword arguments.
+
+        Raises:
+            TLSClientExeption: Error in shared library.
+
+        Returns:
+            A response object.
+        """
         return self.execute_request(method="POST", url=url, data=data, json=json, **kwargs)
 
     def put(
         self,
         url: str,
         data: Optional[Union[str, dict, bytes, bytearray]] = None,
-        json: Optional[dict] = None,
+        json: Optional[dict[Any, Any]] = None,
         **kwargs: Any
-    ):
-        """Sends a PUT request"""
+    ) -> Response:
+        """Sends a PUT request.
+
+        Args:
+            url: Request URL.
+            data: Data to send. Defaults to None.
+            json: JSON dictionary. Defaults to None.
+            **kwargs: Arbitrary keyword arguments.
+
+        Raises:
+            TLSClientExeption: Error in shared library.
+
+        Returns:
+            A response object.
+        """
         return self.execute_request(method="PUT", url=url, data=data, json=json, **kwargs)
 
     def patch(
         self,
         url: str,
         data: Optional[Union[str, dict, bytes, bytearray]] = None,
-        json: Optional[dict] = None,
+        json: Optional[dict[Any, Any]] = None,
         **kwargs: Any
-    ):
-        """Sends a PUT request"""
+    ) -> Response:
+        """Sends a PATCH request.
+
+        Args:
+            url: Request URL.
+            data: Data to send. Defaults to None.
+            json: JSON dictionary. Defaults to None.
+            **kwargs: Arbitrary keyword arguments.
+
+        Raises:
+            TLSClientExeption: Error in shared library.
+
+        Returns:
+            A response object.
+        """
         return self.execute_request(method="PATCH", url=url, data=data, json=json, **kwargs)
 
     def delete(
         self,
         url: str,
         **kwargs: Any
-    ):
-        """Sends a DELETE request"""
+    ) -> Response:
+        """Sends a DELETE request.
+
+        Args:
+            url: Request URL.
+            **kwargs: Arbitrary keyword arguments.
+
+        Raises:
+            TLSClientExeption: Error in shared library.
+
+        Returns:
+            A response object.
+        """
         return self.execute_request(method="DELETE", url=url, **kwargs)
 
     def get_cookies(
