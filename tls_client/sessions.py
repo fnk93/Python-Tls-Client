@@ -1,7 +1,7 @@
 import base64
 from tls_client.cffi import request, close_session, free_memory, get_cookies_from_session
 from tls_client.cookies import cookiejar_from_dict, get_cookie_header, merge_cookies, extract_cookies_to_jar
-from tls_client.exceptions import TLSClientExeption
+from tls_client.exceptions import TLSClientError
 from tls_client.response import Response, build_response
 from tls_client.structures import CaseInsensitiveDict
 from tls_client.__version__ import __version__
@@ -395,7 +395,7 @@ class Session:
         # --- Response -------------------------------------------------------------------------------------------------
         # Error handling
         if response_object["status"] == 0:
-            raise TLSClientExeption(response_object["body"])
+            raise TLSClientError(response_object["body"])
         # Set response cookies
         response_cookie_jar = extract_cookies_to_jar(
             request_url=url,

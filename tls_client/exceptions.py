@@ -1,3 +1,3 @@
 
-class TLSClientExeption(IOError):
-    """General error with the TLS client"""
+class TLSClientError(IOError):
+    """General error with the TLS client."""
