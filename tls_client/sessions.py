@@ -1,16 +1,18 @@
 import base64
-from tls_client.cffi import request, close_session, free_memory, get_cookies_from_session
-from tls_client.cookies import cookiejar_from_dict, get_cookie_header, merge_cookies, extract_cookies_to_jar
-from tls_client.exceptions import TLSClientError
+import ctypes
+import urllib.parse
+import uuid
+from json import dumps, loads
+from typing import Any, Optional, Union
+
+from tls_client.__version__ import __version__
+from tls_client.cffi import (close_session, free_memory,
+                             get_cookies_from_session, request)
+from tls_client.cookies import (cookiejar_from_dict, extract_cookies_to_jar,
+                                get_cookie_header, merge_cookies)
+from tls_client.exceptions import ClientCreateError, ConnectTimeout, CookieReadError, InvalidProxyURL, InvalidSchema, InvalidURL, ReadTimeout, SessionCloseError, TlsClientError, URLRequired
 from tls_client.response import Response, build_response
 from tls_client.structures import CaseInsensitiveDict
-from tls_client.__version__ import __version__
-
-from typing import Any, Optional, Union
-from json import dumps, loads
-import urllib.parse
-import ctypes
-import uuid
 
 
 class Session:
@@ -343,6 +345,8 @@ class Session:
         if isinstance(request_body, (bytes, bytearray)):
             is_byte_request = True
             request_body = base64.b64encode(request_body)
+        if timeout_milliseconds is not None:
+            timeout_seconds = None
         request_payload = {
             "sessionId": self._session_id,
             "followRedirects": allow_redirects,
@@ -395,7 +399,49 @@ class Session:
         # --- Response -------------------------------------------------------------------------------------------------
         # Error handling
         if response_object["status"] == 0:
-            raise TLSClientError(response_object["body"])
+            # error sources:
+            # requestInput := tls_client_cffi_src.RequestInput{}
+            # marshallError := json.Unmarshal([]byte(requestParamsJson), &requestInput)
+
+            # if marshallError != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(marshallError)
+            #     return handleErrorResponse("", false, clientErr)
+            # }
+
+            # tlsClient, sessionId, withSession, err := tls_client_cffi_src.CreateClient(requestInput)
+
+            # if err != nil {
+            #     return handleErrorResponse(sessionId, withSession, err)
+            # }
+
+            # req, err := tls_client_cffi_src.BuildRequest(requestInput)
+
+            # if err != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(err)
+            #     return handleErrorResponse(sessionId, withSession, clientErr)
+            # }
+            # resp, reqErr := tlsClient.Do(req)
+
+            # if reqErr != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(fmt.Errorf("failed to do request: %w", reqErr))
+            #     return handleErrorResponse(sessionId, withSession, clientErr)
+            # }
+
+            # targetCookies := tlsClient.GetCookies(resp.Request.URL)
+
+            # response, err := tls_client_cffi_src.BuildResponse(sessionId, withSession, resp, targetCookies, requestInput.IsByteResponse)
+            # if err != nil {
+            #     return handleErrorResponse(sessionId, withSession, err)
+            # }
+
+            # jsonResponse, marshallError := json.Marshal(response)
+
+            # if marshallError != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(marshallError)
+            #     return handleErrorResponse(sessionId, withSession, clientErr)
+            # }
+
+            raise self.build_request_error(response_object["body"], request_payload=request_payload)
         # Set response cookies
         response_cookie_jar = extract_cookies_to_jar(
             request_url=url,
@@ -569,6 +615,42 @@ class Session:
         # convert response string to json
         get_cookies_response_object = loads(get_cookies_response_string)
         free_memory(get_cookies_response_object['id'].encode('utf-8'))
+        if get_cookies_response_object["status"] == 0:
+            raise self.build_get_cookie_error(get_cookies_response_object["body"])
+            # error sources:
+            # marshallError := json.Unmarshal([]byte(getCookiesParamsJson), &cookiesInput)
+
+            # if marshallError != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(marshallError)
+            #     return handleErrorResponse("", false, clientErr)
+            # }
+
+            # tlsClient, err := tls_client_cffi_src.GetClient(cookiesInput.SessionId)
+
+            # if err != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(err)
+            #     return handleErrorResponse(cookiesInput.SessionId, true, clientErr)
+            # }
+
+            # u, parsErr := url.Parse(cookiesInput.Url)
+            # if parsErr != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(parsErr)
+            #     return handleErrorResponse(cookiesInput.SessionId, true, clientErr)
+            # }
+
+            # cookies := tlsClient.GetCookies(u)
+
+            # out := tls_client_cffi_src.CookiesFromSessionOutput{
+            #     Id:      uuid.New().String(),
+            #     Cookies: cookies,
+            # }
+
+            # jsonResponse, marshallError := json.Marshal(out)
+
+            # if marshallError != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(marshallError)
+            #     return handleErrorResponse(cookiesInput.SessionId, true, clientErr)
+            # }
         return get_cookies_response_object
 
     def reset(
@@ -809,6 +891,41 @@ class Session:
         self.close()
         self._session_id = str(uuid.uuid4())
 
+    def build_request_error(
+        self,
+        error_body: str,
+        request_payload: dict[str, Any],
+    ) -> Exception:
+        if "Client.Timeout exceeded while awaiting headers" in error_body:
+            return ReadTimeout(error_body)
+        elif "unsupported protocol scheme" in error_body:
+            return InvalidSchema(error_body)
+        elif "specify scheme explicitly" in error_body:
+            return InvalidProxyURL(error_body)
+        elif "no such host" in error_body:
+            return InvalidURL(error_body)
+        elif "cannot build client with both defined timeout in seconds and timeout in milliseconds." in error_body:
+            return ClientCreateError(error_body)
+        elif "make sure to specify full url like https://username:password@hostname.com:443/" in error_body:
+            return InvalidProxyURL(error_body)
+        elif "no request url or request method provided" in error_body:
+            return URLRequired(error_body)
+        return TlsClientError(error_body)
+
+    def build_get_cookie_error(
+        self,
+        error_body: str,
+    ) -> Exception:
+        ...
+        return CookieReadError(error_body)
+
+    def build_close_error(
+        self,
+        error_body: str,
+    ) -> Exception:
+        ...
+        return SessionCloseError(error_body)
+
     def close(
         self,
     ):
@@ -827,4 +944,28 @@ class Session:
         # convert response string to json
         close_response_object = loads(close_response_string)
         free_memory(close_response_object['id'].encode('utf-8'))
+        if close_response_object.get("status") == 0:
+            raise self.build_close_error(error_body=close_response_object["body"])
+            # error sources:
+            # destroySessionInput := tls_client_cffi_src.DestroySessionInput{}
+            # marshallError := json.Unmarshal([]byte(destroySessionParamsJson), &destroySessionInput)
+
+            # if marshallError != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(marshallError)
+            #     return handleErrorResponse("", false, clientErr)
+            # }
+
+            # tls_client_cffi_src.RemoveSession(destroySessionInput.SessionId)
+
+            # out := tls_client_cffi_src.DestroyOutput{
+            #     Id:      uuid.New().String(),
+            #     Success: true,
+            # }
+
+            # jsonResponse, marshallError := json.Marshal(out)
+
+            # if marshallError != nil {
+            #     clientErr := tls_client_cffi_src.NewTLSClientError(marshallError)
+            #     return handleErrorResponse(destroySessionInput.SessionId, true, clientErr)
+            # }
         return close_response_object
