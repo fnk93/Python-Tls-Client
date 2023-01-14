@@ -8,7 +8,7 @@ def test_proxy_on_get():
         random_tls_extension_order=True,
         debug=True,
     )
-    resp = session.get('https://api.ipify.org/?format=json', proxy="http://45.8.179.241:1337")
+    resp = session.get('https://----api.ipify.org/?format=json', proxy="http://49.241:137")
     print(resp.json())
     session.close()
 
