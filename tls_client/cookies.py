@@ -1,3 +1,4 @@
+"""This module contains classes and function to use for cookies."""
 from __future__ import annotations
 
 import copy
@@ -14,6 +15,7 @@ from http.cookiejar import Cookie
 from http.cookiejar import CookieJar
 from http.cookiejar import CookiePolicy
 from http.cookiejar import DefaultCookiePolicy
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Optional
 from typing import TypeVar
@@ -22,33 +24,38 @@ from urllib.parse import urlparse
 from urllib.parse import urlunparse
 from urllib.request import Request
 
-from tls_client.structures import CaseInsensitiveDict
+
+if TYPE_CHECKING:
+    from tls_client.structures import CaseInsensitiveDict
 
 
 _T = TypeVar("_T")
 
 
 class MockRequest(Request):
-    """
-    Mimic a urllib2.Request to get the correct cookie string for the request.
-    """
+    """Mimic a urllib2.Request to get the correct cookie string for the request."""
 
     def __init__(self, request_url: str, request_headers: CaseInsensitiveDict) -> None:
+        """Init an instance."""
         self.request_url = request_url
         self.request_headers = request_headers
         self._new_headers: dict[str, str] = {}
         self.type = urlparse(self.request_url).scheme
 
     def get_type(self) -> str:
+        """Get the request's scheme."""
         return self.type
 
     def get_host(self) -> str:
+        """Get the request's host."""
         return urlparse(self.request_url).netloc
 
     def get_origin_req_host(self) -> str:
+        """Get the request's origin host."""
         return self.get_host()
 
     def get_full_url(self) -> str:
+        """Get the request's full url."""
         # Only return the response's URL if the user hadn't set the Host
         # header
         if not self.request_headers.get("Host"):
@@ -69,56 +76,69 @@ class MockRequest(Request):
         )
 
     def is_unverifiable(self) -> bool:
+        """Check if self is unverifiable."""
         return True
 
     def has_header(self, name: str) -> bool:
+        """Check if header exists."""
         return name in self.request_headers or name in self._new_headers
 
-    def get_header(self, header_name: str, default: _T) -> str | _T:
+    def get_header(self, header_name: str, default: Optional[_T] = None) -> str | _T | None:  # type: ignore[override]
+        """Get a header's value."""
         return self.request_headers.get(
             header_name, self._new_headers.get(header_name, default)
         )
 
     def add_unredirected_header(self, name: str, value: str) -> None:
+        """Add unredirected headers."""
         self._new_headers[name] = value
 
     def get_new_headers(self) -> dict[str, str]:
+        """Get the new headers."""
         return self._new_headers
 
     @property
-    def unverifiable(self) -> bool:
+    def unverifiable(self) -> bool:  # type: ignore[override]
+        """Get unverifiable."""
         return self.is_unverifiable()
 
     @property
-    def origin_req_host(self) -> str:
+    def origin_req_host(self) -> str:  # type: ignore[override]
+        """Get the origin host."""
         return self.get_origin_req_host()
 
     @property
-    def host(self) -> str:
+    def host(self) -> str:  # type: ignore[override]
+        """Get the host."""
         return self.get_host()
 
 
 class MockResponse(HTTPResponse):
-    """
-    Wraps a httplib.HTTPMessage to mimic a urllib.addinfourl.
+    """Wraps a httplib.HTTPMessage to mimic a urllib.addinfourl.
+
     The objective is to retrieve the response cookies correctly.
     """
 
     def __init__(self, headers: HTTPMessage) -> None:
+        """Init an instance."""
         self._headers = headers
 
     def info(self) -> HTTPMessage:
+        """Get the HTTPMessage."""
         return self._headers
 
 
 class CookieConflictError(RuntimeError):
     """There are two cookies that meet the criteria specified in the cookie jar.
+
     Use .get and .set and include domain and path args in order to be more specific.
     """
 
 
 class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
-    """Origin: requests library (https://github.com/psf/requests)
+    """CookieJar implementation of requests.
+
+    Origin: requests library (https://github.com/psf/requests)
     Compatibility class; is a cookielib.CookieJar, but exposes a dict
     interface.
 
@@ -137,6 +157,7 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
     """
 
     def __init__(self, policy: CookiePolicy | None = None) -> None:
+        """Init instance."""
         super().__init__(policy)
 
     def get(
@@ -146,7 +167,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         domain: Optional[str] = None,
         path: Optional[str] = None,
     ) -> str | Any | None:
-        """Dict-like get() that also supports optional domain and path args in
+        """Get a cookie.
+
+        Dict-like get() that also supports optional domain and path args in
         order to resolve naming collisions from using one cookie jar over
         multiple domains.
 
@@ -158,7 +181,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
             return default
 
     def set(self, name: str, value: str | None = None, **kwargs: Any) -> Cookie | None:
-        """Dict-like set() that also supports optional domain and path args in
+        """Set a cookie.
+
+        Dict-like set() that also supports optional domain and path args in
         order to resolve naming collisions from using one cookie jar over
         multiple domains.
         """
@@ -174,8 +199,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         return c
 
     def iterkeys(self) -> Generator[str, None, None]:
-        """Dict-like iterkeys() that returns an iterator of names of cookies
-        from the jar.
+        """Make generator for cookie names.
+
+        Dict-like iterkeys() that returns an iterator of names of cookies from the jar.
 
         .. seealso:: itervalues() and iteritems().
         """
@@ -183,7 +209,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
             yield cookie.name
 
     def keys(self) -> KeysView[str]:
-        """Dict-like keys() that returns a list of names of cookies from the
+        """Make list of cookie names.
+
+        Dict-like keys() that returns a list of names of cookies from the
         jar.
 
         .. seealso:: values() and items().
@@ -192,7 +220,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         # return list(self.iterkeys())
 
     def itervalues(self) -> Generator[str | None, None, None]:
-        """Dict-like itervalues() that returns an iterator of values of cookies
+        """Make generator for cookie values.
+
+        Dict-like itervalues() that returns an iterator of values of cookies
         from the jar.
 
         .. seealso:: iterkeys() and iteritems().
@@ -201,7 +231,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
             yield cookie.value
 
     def values(self) -> ValuesView[Any]:
-        """Dict-like values() that returns a list of values of cookies from the
+        """Make list of cookie values.
+
+        Dict-like values() that returns a list of values of cookies from the
         jar.
 
         .. seealso:: keys() and items().
@@ -210,7 +242,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         # return list(self.itervalues())
 
     def iteritems(self) -> Generator[tuple[str, str | None], None, None]:
-        """Dict-like iteritems() that returns an iterator of name-value tuples
+        """Make generator for cookie name, value pairs.
+
+        Dict-like iteritems() that returns an iterator of name-value tuples
         from the jar.
 
         .. seealso:: iterkeys() and itervalues().
@@ -219,7 +253,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
             yield cookie.name, cookie.value
 
     def items(self) -> ItemsView[str, Any]:
-        """Dict-like items() that returns a list of name-value tuples from the
+        """Make list of cookie name, value pairs.
+
+        Dict-like items() that returns a list of name-value tuples from the
         jar. Allows client-code to call ``dict(RequestsCookieJar)`` and get a
         vanilla python dict of key value pairs.
 
@@ -229,7 +265,7 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         # return list(self.iteritems())
 
     def list_domains(self) -> list[str]:
-        """Utility method to list all the domains in the jar."""
+        """List all the domains in the jar."""
         domains = []
         for cookie in iter(self):
             if cookie.domain not in domains:
@@ -237,7 +273,7 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         return domains
 
     def list_paths(self) -> list[str]:
-        """Utility method to list all the paths in the jar."""
+        """List all the paths in the jar."""
         paths = []
         for cookie in iter(self):
             if cookie.path not in paths:
@@ -245,7 +281,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         return paths
 
     def multiple_domains(self) -> bool:
-        """Returns True if there are multiple domains in the jar.
+        """Check if multiple domains present in cookiejar.
+
+        Returns True if there are multiple domains in the jar.
         Returns False otherwise.
 
         :rtype: bool
@@ -260,7 +298,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
     def get_dict(
         self, domain: Optional[str] = None, path: Optional[str] = None
     ) -> dict[str, str | None]:
-        """Takes as an argument an optional domain and path and returns a plain
+        """Construct a cookie dictionary.
+
+        Takes as an argument an optional domain and path and returns a plain
         old Python dict of name-value pairs of cookies that meet the
         requirements.
 
@@ -275,13 +315,16 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         return dictionary
 
     def __contains__(self, name: object) -> bool:
+        """Check if cookie name is already in cookiejar."""
         try:
             return super().__contains__(name)
         except CookieConflictError:
             return True
 
     def __getitem__(self, name: str) -> str:
-        """Dict-like __getitem__() for compatibility with client code. Throws
+        """Get a cookie's value by name.
+
+        Dict-like __getitem__() for compatibility with client code. Throws
         exception if there are more than one cookie with name. In that case,
         use the more explicit get() method instead.
 
@@ -290,19 +333,24 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         return self._find_no_duplicates(name)
 
     def __setitem__(self, name: str, value: str | None = None) -> None:
-        """Dict-like __setitem__ for compatibility with client code. Throws
+        """Set a cookie's value by name.
+
+        Dict-like __setitem__ for compatibility with client code. Throws
         exception if there is already a cookie of that name in the jar. In that
         case, use the more explicit set() method instead.
         """
         self.set(name, value)
 
     def __delitem__(self, name: str) -> None:
-        """Deletes a cookie given a name. Wraps ``cookielib.CookieJar``'s
+        """Delete a cookie by name.
+
+        Deletes a cookie given a name. Wraps ``cookielib.CookieJar``'s
         ``remove_cookie_by_name()``.
         """
         remove_cookie_by_name(self, name)
 
     def set_cookie(self, cookie: Cookie, *args: Any, **kwargs: Any) -> None:
+        """Set a cookie."""
         if (
             cookie.value is not None
             and hasattr(cookie.value, "startswith")
@@ -313,7 +361,7 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
         return super().set_cookie(cookie, *args, **kwargs)
 
     def update(self, other: CookieJar | MutableMapping[Any, Any]) -> None:  # type: ignore[override]
-        """Updates this jar with cookies from another CookieJar or dict-like"""
+        """Update this jar with cookies from another CookieJar or dict-like."""
         if isinstance(other, CookieJar):
             for cookie in other:
                 self.set_cookie(copy.copy(cookie))
@@ -323,7 +371,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
     def _find(
         self, name: str, domain: Optional[str] = None, path: Optional[str] = None
     ) -> str | None:
-        """Requests uses this method internally to get cookie values.
+        """Find a cookie value.
+
+        Requests uses this method internally to get cookie values.
 
         If there are conflicting cookies, _find arbitrarily chooses one.
         See _find_no_duplicates if you want an exception thrown if there are
@@ -347,7 +397,9 @@ class RequestsCookieJar(CookieJar, MutableMapping[str, Any]):
     def _find_no_duplicates(
         self, name: str, domain: Optional[str] = None, path: Optional[str] = None
     ) -> str:
-        """Both ``__get_item__`` and ``get`` call this function: it's never
+        """Find a unique cookie.
+
+        Both ``__get_item__`` and ``get`` call this function: it's never
         used elsewhere in Requests.
 
         :param name: a string containing name of cookie
@@ -411,7 +463,7 @@ def remove_cookie_by_name(
     domain: str | None = None,
     path: str | None = None,
 ) -> None:
-    """Removes a cookie by name, by default over all domains and paths."""
+    """Remove a cookie by name, by default over all domains and paths."""
     clearables = []
     for cookie in cookiejar:
         if cookie.name != name:
@@ -533,7 +585,7 @@ def create_cookie(
 
 
 def cookiejar_from_dict(cookie_dict: dict[str, str]) -> RequestsCookieJar:
-    """transform a dict to CookieJar"""
+    """Transform a dict to CookieJar."""
     cookie_jar = RequestsCookieJar()
     if cookie_dict is not None:
         for name, value in cookie_dict.items():
@@ -544,7 +596,7 @@ def cookiejar_from_dict(cookie_dict: dict[str, str]) -> RequestsCookieJar:
 def merge_cookies(
     cookiejar: RequestsCookieJar, cookies: Union[dict[str, str], RequestsCookieJar]
 ) -> RequestsCookieJar:
-    """Merge cookies in session and cookies provided in request"""
+    """Merge cookies in session and cookies provided in request."""
     if isinstance(cookies, dict):
         cookies = cookiejar_from_dict(cookies)
 
@@ -559,6 +611,7 @@ def get_cookie_header(
     request_headers: CaseInsensitiveDict,
     cookie_jar: RequestsCookieJar,
 ) -> str:
+    """Construct a cookie header."""
     r = MockRequest(request_url, request_headers)
     cookie_jar.add_cookie_header(r)
     return r.get_new_headers().get("Cookie", "")
@@ -570,6 +623,7 @@ def extract_cookies_to_jar(
     cookie_jar: RequestsCookieJar,
     response_headers: dict[str, Any],
 ) -> RequestsCookieJar:
+    """Extract cookies to a given cookiejar."""
     response_cookie_jar = cookiejar_from_dict({})
 
     req = MockRequest(request_url, request_headers)

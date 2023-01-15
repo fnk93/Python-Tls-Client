@@ -1,3 +1,4 @@
+"""Contains logic for loading the correct library."""
 from __future__ import annotations
 
 import ctypes

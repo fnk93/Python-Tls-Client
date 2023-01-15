@@ -1,3 +1,4 @@
+"""This module contains the Session."""
 from __future__ import annotations
 
 import base64
@@ -51,6 +52,8 @@ CloseError = Union[SessionCloseError, TlsClientError]
 
 
 class Session:
+    """Session class for usage with TLS client."""
+
     def __init__(
         self,
         client_identifier: Optional[str] = None,
@@ -71,6 +74,7 @@ class Session:
         force_http1: Optional[bool] = False,
         debug: bool = False,
     ) -> None:
+        """Init a session."""
         self._session_id = str(uuid.uuid4())
         self._debug = debug
         # --- Standard Settings ----------------------------------------------------------------------------------------
@@ -630,6 +634,7 @@ class Session:
         self,
         url: str,
     ) -> Any:
+        """Get the cookies of the shared library for a URL."""
         get_cookies_payload = {
             "sessionId": self._session_id,
             "url": url,
@@ -712,6 +717,7 @@ class Session:
         force_http1: Optional[bool] = False,
         debug: bool = False,
     ) -> None:
+        """Construct a new session."""
         self.reset()
         self._debug = debug
         # --- Standard Settings ----------------------------------------------------------------------------------------
@@ -911,6 +917,7 @@ class Session:
         self,
         debug: bool,
     ) -> None:
+        """Change `_debug` value."""
         self._debug = debug
 
     def clear_cookies(
@@ -926,6 +933,7 @@ class Session:
         error_body: str,
         request_payload: dict[str, Any],
     ) -> RequestError:
+        """Construct an exception for a request."""
         if "Client.Timeout exceeded while awaiting headers" in error_body:
             return ReadTimeout(error_body)
         elif "unsupported protocol scheme" in error_body:
@@ -956,6 +964,7 @@ class Session:
         self,
         error_body: str,
     ) -> GetCookieError:
+        """Construct an exception for getting cookies."""
         if "no client found for" in error_body:
             return ClientNotFoundError(error_body)
         return CookieReadError(error_body)
@@ -964,6 +973,7 @@ class Session:
         self,
         error_body: str,
     ) -> CloseError:
+        """Construct an exception for closing the session."""
         ...
         return SessionCloseError(error_body)
 

@@ -1,3 +1,4 @@
+"""This module contains exceptions used."""
 from __future__ import annotations
 
 from typing import Any
@@ -46,7 +47,8 @@ class JSONDecodeError(InvalidJSONError):
     """Couldn't decode the text into json."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
+        """Init an instance.
+
         Construct the JSONDecodeError instance first with all
         args. Then use it's args to construct the IOError so that
         the json specific args aren't used as IOError specific args
@@ -77,6 +79,7 @@ class SSLError(ConnectionError):
 
 class Timeout(RequestException):
     """The request timed out.
+
     Catching this error will catch both
     :exc:`~requests.exceptions.ConnectTimeout` and
     :exc:`~requests.exceptions.ReadTimeout` errors.
@@ -85,6 +88,7 @@ class Timeout(RequestException):
 
 class ConnectTimeout(ConnectionError, Timeout):
     """The request timed out while trying to connect to the remote server.
+
     Requests that produced this error are safe to retry.
     """
 

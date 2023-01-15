@@ -1,3 +1,4 @@
+"""This module contains generic structures."""
 from __future__ import annotations
 
 from collections import OrderedDict
@@ -43,26 +44,32 @@ class CaseInsensitiveDict(MutableMapping[str, str]):
         data: Optional[Iterable[tuple[str, str]] | dict[str, str]] = None,
         **kwargs: Any,
     ) -> None:
+        """Init an instance."""
         self._store: OrderedDict[str, tuple[str, str]] = OrderedDict()
         if data is None:
             data = {}
         self.update(data, **kwargs)
 
     def __setitem__(self, key: str, value: str) -> None:
+        """Set a key to the value."""
         # Use the lowercased key for lookups, but store the actual
         # key alongside the value.
         self._store[key.lower()] = (key, value)
 
     def __getitem__(self, key: str) -> str:
+        """Get a key's value."""
         return self._store[key.lower()][1]
 
     def __delitem__(self, key: str) -> None:
+        """Delete a key."""
         del self._store[key.lower()]
 
     def __iter__(self) -> Generator[str, None, None]:
+        """Make a generator for all keys."""
         return (casedkey for casedkey, mappedvalue in self._store.values())
 
     def __len__(self) -> int:
+        """Get length."""
         return len(self._store)
 
     def lower_items(self) -> Generator[tuple[str, str], None, None]:
@@ -70,6 +77,7 @@ class CaseInsensitiveDict(MutableMapping[str, str]):
         return ((lowerkey, keyval[1]) for (lowerkey, keyval) in self._store.items())
 
     def __eq__(self, other: object) -> bool:
+        """Check if instance is equal to other object."""
         if isinstance(other, Mapping):
             compare_dict = CaseInsensitiveDict(other)
         else:
@@ -79,7 +87,9 @@ class CaseInsensitiveDict(MutableMapping[str, str]):
 
     # Copy is required
     def copy(self) -> CaseInsensitiveDict:
+        """Return a copy of this instance."""
         return CaseInsensitiveDict(self._store.values())
 
     def __repr__(self) -> str:
+        """Generate string representation for this instance."""
         return str(dict(self.items()))

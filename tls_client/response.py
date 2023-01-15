@@ -1,3 +1,4 @@
+"""This module contains the Response class."""
 from __future__ import annotations
 
 import json
@@ -14,6 +15,7 @@ class Response:
     """object, which contains the response to an HTTP request."""
 
     def __init__(self) -> None:
+        """Construct Response object."""
         # Reference of URL the response is coming from (especially useful with redirects)
         self.url = None
 
@@ -30,13 +32,22 @@ class Response:
         self.cookies = cookiejar_from_dict({})
 
     def __enter__(self) -> Response:
+        """Use response in context handler."""
         return self
 
     def __repr__(self) -> str:
+        """Build string representation of instance."""
         return f"<Response [{self.status_code}]>"
 
     def json(self, **kwargs: Any) -> Any:
-        """parse response body to json (dict/list)"""
+        """Parse response body to JSON.
+
+        Raises:
+            ResponseEmptyError: `response.text` is None.
+
+        Returns:
+            The parsed JSON object.
+        """
         if self.text is None:
             raise ResponseEmptyError()
         return json.loads(self.text, **kwargs)
