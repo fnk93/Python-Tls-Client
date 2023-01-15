@@ -26,6 +26,7 @@ from tls_client.exceptions import CookieReadError
 from tls_client.exceptions import InvalidProxyURL
 from tls_client.exceptions import InvalidSchema
 from tls_client.exceptions import InvalidURL
+from tls_client.exceptions import MalformedResponseError
 from tls_client.exceptions import ReadTimeout
 from tls_client.exceptions import SessionCloseError
 from tls_client.exceptions import TlsClientError
@@ -43,8 +44,9 @@ RequestError = Union[
     InvalidURL,
     ClientCreateError,
     URLRequired,
+    MalformedResponseError,
 ]
-GetCookieError = Union[CookieReadError, TlsClientError]
+GetCookieError = Union[CookieReadError, ClientNotFoundError, TlsClientError]
 CloseError = Union[SessionCloseError, TlsClientError]
 
 
@@ -946,6 +948,8 @@ class Session:
             return InvalidProxyURL(error_body)
         elif "no request url or request method provided" in error_body:
             return URLRequired(error_body)
+        elif "malformed HTTP response" in error_body:
+            return MalformedResponseError(error_body)
         return TlsClientError(error_body)
 
     def build_get_cookie_error(

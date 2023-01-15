@@ -59,6 +59,10 @@ class HTTPError(RequestException):
     """An HTTP error occurred."""
 
 
+class MalformedResponseError(RequestException):
+    """Response is malformed."""
+
+
 class ConnectionError(RequestException):
     """A Connection error occurred."""
 
