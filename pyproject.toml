@@ -14,7 +14,77 @@ python = "^3.9"
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
 psutil = "^5.9.4"
+flake8 = "^6.0.0"
+black = "^22.12.0"
+pytest = "^7.2.0"
+hypothesis = "^6.61.0"
+mutmut = "^2.4.3"
+flake8-bugbear = "^22.12.6"
+pep8-naming = "^0.13.3"
+flake8-comprehensions = "^3.10.1"
+isort = "^5.11.4"
+types-setuptools = "^65.6.0.2"
+autoflake = "^2.0.0"
+pre-commit = "^2.20.0"
+pytest-github-actions-annotate-failures = "^0.1.8"
+pytest-cov = "^4.0.0"
+pyupgrade = "^3.3.1"
+tryceratops = "^1.1.0"
+tox = "^4.0.16"
+pytest-mock = "^3.10.0"
+pytest-randomly = "^3.12.0"
+pytest-sugar = "^0.9.6"
+pytest-xdist = {extras = ["psutil"], version = "^3.1.0"}
+deepdiff = "^6.2.2"
+httpretty = "^1.1.4"
+flatdict = "^4.0.1"
+flake8-annotations = "^2.9.1"
+flake8-quotes = "^3.3.2"
+flake8-simplify = "^0.19.3"
+flake8-tidy-imports = "^4.8.0"
+flake8-type-checking = "^2.3.0"
+flake8-use-fstring = "^1.4"
+flake8-typing-imports = "^1.14.0"
+flake8-docstrings = "^1.6.0"
+flake8-isort = "^6.0.0"
+flake8-bandit = "^4.1.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+py_version = 39
+profile = "black"
+force_single_line = true
+combine_as_imports = true
+lines_between_types = 1
+lines_after_imports = 2
+src_paths = ["tls_client", "tests"]
+extend_skip = ["setup.py"]
+known_third_party = ["poetry.core"]
+
+[tool.black]
+target-version = ["py39", "py310", "py311"]
+preview = true
+force-exclude = '''
+.*/setup\.py$
+'''
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:"
+]
+
+[tool.mypy]
+files = "tls_client"
+follow_imports = "silent"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+ignore_missing_imports = true
+
+[tool.pyright]

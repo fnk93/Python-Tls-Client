@@ -1,14 +1,21 @@
-class RequestException(IOError):
-    """There was an ambiguous exception that occurred while handling your
-    request.
-    """
+from __future__ import annotations
 
-    def __init__(self, *args, **kwargs):
+from typing import Any
+
+
+class RequestException(IOError):
+    """There was an ambiguous exception that occurred while handling your request."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize RequestException with `request` and `response` objects."""
         response = kwargs.pop("response", None)
         self.response = response
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
+
+
+class ResponseEmptyError(RequestException):
+    """Response is empty."""
 
 
 class TlsClientError(IOError):
@@ -32,9 +39,9 @@ class InvalidJSONError(RequestException):
 
 
 class JSONDecodeError(InvalidJSONError):
-    """Couldn't decode the text into json"""
+    """Couldn't decode the text into json."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
         Construct the JSONDecodeError instance first with all
         args. Then use it's args to construct the IOError so that
@@ -119,7 +126,7 @@ class StreamConsumedError(RequestException, TypeError):
 
 
 class RetryError(RequestException):
-    """Custom retries logic failed"""
+    """Custom retries logic failed."""
 
 
 class UnrewindableBodyError(RequestException):

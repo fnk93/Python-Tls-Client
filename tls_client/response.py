@@ -1,16 +1,19 @@
-from .cookies import cookiejar_from_dict, RequestsCookieJar
-from .structures import CaseInsensitiveDict
+from __future__ import annotations
 
-from http.cookiejar import CookieJar
-from typing import Union
 import json
+
+from typing import Any
+
+from tls_client.cookies import RequestsCookieJar
+from tls_client.cookies import cookiejar_from_dict
+from tls_client.exceptions import ResponseEmptyError
+from tls_client.structures import CaseInsensitiveDict
 
 
 class Response:
     """object, which contains the response to an HTTP request."""
 
-    def __init__(self):
-
+    def __init__(self) -> None:
         # Reference of URL the response is coming from (especially useful with redirects)
         self.url = None
 
@@ -26,19 +29,21 @@ class Response:
         # A CookieJar of Cookies the server sent back.
         self.cookies = cookiejar_from_dict({})
 
-    def __enter__(self):
+    def __enter__(self) -> Response:
         return self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Response [{self.status_code}]>"
 
-    def json(self, **kwargs):
+    def json(self, **kwargs: Any) -> Any:
         """parse response body to json (dict/list)"""
+        if self.text is None:
+            raise ResponseEmptyError()
         return json.loads(self.text, **kwargs)
 
 
-def build_response(res: Union[dict, list], res_cookies: RequestsCookieJar) -> Response:
-    """Builds a Response object """
+def build_response(res: dict[str, Any], res_cookies: RequestsCookieJar) -> Response:
+    """Build a Response object."""
     response = Response()
     # Add target / url
     response.url = res["target"]
@@ -52,7 +57,7 @@ def build_response(res: Union[dict, list], res_cookies: RequestsCookieJar) -> Re
                 response_headers[header_key] = header_value[0]
             else:
                 response_headers[header_key] = header_value
-    response.headers = response_headers
+    response.headers = CaseInsensitiveDict(response_headers)
     # Add cookies
     response.cookies = res_cookies
     # Add response body

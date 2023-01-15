@@ -1,35 +1,38 @@
-from pathlib import Path
-from sys import platform
-from platform import machine
+from __future__ import annotations
+
 import ctypes
+
+from pathlib import Path
+from platform import machine
+from sys import platform
 
 from tls_client.constants import SHARED_LIB_VERSION
 
 
-if platform == 'darwin':
-    platform_name = 'darwin'
-    file_type = 'dylib'
-    file_arch = 'arm64' if machine() == "arm64" else 'amd64'
-elif platform in ('win32', 'cygwin'):
-    platform_name = 'windows'
-    file_type = 'dll'
-    file_arch = '64' if 8 == ctypes.sizeof(ctypes.c_void_p) else '32'
+if platform == "darwin":
+    platform_name = "darwin"
+    file_type = "dylib"
+    file_arch = "arm64" if machine() == "arm64" else "amd64"
+elif platform in ("win32", "cygwin"):
+    platform_name = "windows"
+    file_type = "dll"
+    file_arch = "64" if ctypes.sizeof(ctypes.c_void_p) == 8 else "32"
 else:
     # TODO: check this
-    platform_name = 'linux'
-    file_type = 'so'
+    platform_name = "linux"
+    file_type = "so"
     if machine() == "aarch64":
-        file_arch = 'arm64'
+        file_arch = "arm64"
     elif "x86" in machine():
-        file_arch = 'x86'
+        file_arch = "x86"
         raise NotImplementedError()
     else:
-        file_arch = 'ubuntu-amd64'
+        file_arch = "ubuntu-amd64"
 
 # root_dir = os.path.abspath(os.path.dirname(__file__))
 root_dir = Path(__file__).parent.parent
-file_name = f'tls-client-{platform_name}-{file_arch}-{SHARED_LIB_VERSION}.{file_type}'
-file_loc = root_dir / 'shared_lib' / 'cffi_dist' / 'dist' / file_name
+file_name = f"tls-client-{platform_name}-{file_arch}-{SHARED_LIB_VERSION}.{file_type}"
+file_loc = root_dir / "shared_lib" / "cffi_dist" / "dist" / file_name
 file_loc_str = str(file_loc.absolute())
 library = ctypes.cdll.LoadLibrary(file_loc_str)
 

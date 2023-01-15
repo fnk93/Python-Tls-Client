@@ -12,5 +12,11 @@
 # tls-client: https://github.com/bogdanfinn/tls-client
 # requests: https://github.com/psf/requests
 
-from tls_client.sessions import Session
 from tls_client.response import Response
+from tls_client.sessions import Session
+
+
+__all__ = [
+    "Response",
+    "Session",
+]

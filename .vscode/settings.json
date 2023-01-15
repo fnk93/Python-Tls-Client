@@ -1,0 +1,39 @@
+{
+  "go.lintOnSave": "file",
+  "go.lintTool": "golangci-lint",
+  "python.linting.pylintEnabled": false,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "[python]": {
+    "editor.rulers": [
+      88,
+      120
+    ],
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": false
+  },
+  "python.formatting.provider": "none",
+  "gopls": {
+    "ui.semanticTokens": true,
+    "formatting.gofumpt": true
+  },
+  "[go]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "golang.go"
+  },
+  "conventionalCommits.scopes": [
+    "git-action",
+    "discord",
+    "import",
+    "log",
+    "pre-commit",
+    "lib",
+    "cache",
+    "aio-cache",
+    "laravel",
+    "models",
+    "lint",
+    "discord-msg"
+  ]
+}
