@@ -4,22 +4,44 @@ from __future__ import annotations
 from typing import Any
 
 
-class RequestException(IOError):
+class RequestError(IOError):
     """There was an ambiguous exception that occurred while handling your request."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize RequestException with `request` and `response` objects."""
+        """Initialize RequestError with `request` and `response` objects."""
         response = kwargs.pop("response", None)
         self.response = response
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
 
 
-class ResponseEmptyError(RequestException):
+class GetCookieError(IOError):
+    """There was an ambiguous exception that occurred while handling your request."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize GetCookieError with `request` and `response` objects."""
+        response = kwargs.pop("response", None)
+        self.response = response
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+
+class CloseError(IOError):
+    """There was an ambiguous exception that occurred while handling your request."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize GetCookieError with `request` and `response` objects."""
+        response = kwargs.pop("response", None)
+        self.response = response
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+
+class ResponseEmptyError(RequestError):
     """Response is empty."""
 
 
-class TlsClientError(IOError):
+class TlsClientError(RequestError, GetCookieError, CloseError):
     """General error with the TLS client."""
 
 
@@ -27,11 +49,11 @@ class ClientCreateError(TlsClientError):
     """Unable to create new TLS client."""
 
 
-class SessionCloseError(TlsClientError):
+class SessionCloseError(CloseError):
     """Session close failed."""
 
 
-class CookieReadError(TlsClientError):
+class CookieReadError(GetCookieError):
     """Cookie read failed."""
 
 
@@ -39,7 +61,7 @@ class ClientNotFoundError(TlsClientError):
     """Cookie read failed."""
 
 
-class InvalidJSONError(RequestException):
+class InvalidJSONError(RequestError):
     """A JSON error occurred."""
 
 
@@ -57,15 +79,15 @@ class JSONDecodeError(InvalidJSONError):
         InvalidJSONError.__init__(self, *self.args, **kwargs)
 
 
-class HTTPError(RequestException):
+class HTTPError(RequestError):
     """An HTTP error occurred."""
 
 
-class MalformedResponseError(RequestException):
+class MalformedResponseError(RequestError):
     """Response is malformed."""
 
 
-class ConnectionError(RequestException):
+class ConnectionError(RequestError):
     """A Connection error occurred."""
 
 
@@ -77,7 +99,7 @@ class SSLError(ConnectionError):
     """An SSL error occurred."""
 
 
-class Timeout(RequestException):
+class Timeout(RequestError):
     """The request timed out.
 
     Catching this error will catch both
@@ -97,27 +119,27 @@ class ReadTimeout(Timeout):
     """The server did not send any data in the allotted amount of time."""
 
 
-class URLRequired(RequestException):
+class URLRequired(RequestError):
     """A valid URL is required to make a request."""
 
 
-class TooManyRedirects(RequestException):
+class TooManyRedirects(RequestError):
     """Too many redirects."""
 
 
-class MissingSchema(RequestException, ValueError):
+class MissingSchema(RequestError, ValueError):
     """The URL scheme (e.g. http or https) is missing."""
 
 
-class InvalidSchema(RequestException, ValueError):
+class InvalidSchema(RequestError, ValueError):
     """The URL scheme provided is either invalid or unsupported."""
 
 
-class InvalidURL(RequestException, ValueError):
+class InvalidURL(RequestError, ValueError):
     """The URL provided was somehow invalid."""
 
 
-class InvalidHeader(RequestException, ValueError):
+class InvalidHeader(RequestError, ValueError):
     """The header value provided was somehow invalid."""
 
 
@@ -125,21 +147,21 @@ class InvalidProxyURL(InvalidURL):
     """The proxy URL provided is invalid."""
 
 
-class ChunkedEncodingError(RequestException):
+class ChunkedEncodingError(RequestError):
     """The server declared chunked encoding but sent an invalid chunk."""
 
 
-class ContentDecodingError(RequestException):
+class ContentDecodingError(RequestError):
     """Failed to decode response content."""
 
 
-class StreamConsumedError(RequestException, TypeError):
+class StreamConsumedError(RequestError, TypeError):
     """The content for this response was already consumed."""
 
 
-class RetryError(RequestException):
+class RetryError(RequestError):
     """Custom retries logic failed."""
 
 
-class UnrewindableBodyError(RequestException):
+class UnrewindableBodyError(RequestError):
     """Requests encountered an error when trying to rewind a body."""

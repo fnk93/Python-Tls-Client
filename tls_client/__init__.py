@@ -12,10 +12,10 @@
 # tls-client: https://github.com/bogdanfinn/tls-client
 # requests: https://github.com/psf/requests
 
+from tls_client.exceptions import CloseError
+from tls_client.exceptions import GetCookieError
+from tls_client.exceptions import RequestError
 from tls_client.response import Response
-from tls_client.sessions import CloseError
-from tls_client.sessions import GetCookieError
-from tls_client.sessions import RequestError
 from tls_client.sessions import Session
 
 
