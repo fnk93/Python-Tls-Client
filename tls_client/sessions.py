@@ -21,6 +21,7 @@ from tls_client.cookies import extract_cookies_to_jar
 from tls_client.cookies import get_cookie_header
 from tls_client.cookies import merge_cookies
 from tls_client.exceptions import ClientCreateError
+from tls_client.exceptions import ClientNotFoundError
 from tls_client.exceptions import CookieReadError
 from tls_client.exceptions import InvalidProxyURL
 from tls_client.exceptions import InvalidSchema
@@ -951,7 +952,8 @@ class Session:
         self,
         error_body: str,
     ) -> GetCookieError:
-        ...
+        if "no client found for" in error_body:
+            return ClientNotFoundError(error_body)
         return CookieReadError(error_body)
 
     def build_close_error(

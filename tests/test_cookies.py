@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import tls_client
 
+from tls_client.exceptions import ClientNotFoundError
+
 
 def test_cookies():
     client_identifier = "chrome_107"
@@ -15,7 +17,10 @@ def test_cookies():
     print(session.get_cookies(url="https://httpbin.org"))
     session.clear_cookies()
     print(session.cookies.get_dict())
-    print(session.get_cookies(url="https://httpbin.org"))
+    try:
+        print(session.get_cookies(url="https://httpbin.org"))
+    except ClientNotFoundError:
+        print("Client has been reset.")
     print(session.get("https://httpbin.org/cookies").json())
 
 

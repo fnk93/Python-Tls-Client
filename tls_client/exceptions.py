@@ -34,6 +34,10 @@ class CookieReadError(TlsClientError):
     """Cookie read failed."""
 
 
+class ClientNotFoundError(TlsClientError):
+    """Cookie read failed."""
+
+
 class InvalidJSONError(RequestException):
     """A JSON error occurred."""
 
