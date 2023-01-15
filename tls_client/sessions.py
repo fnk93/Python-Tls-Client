@@ -503,7 +503,7 @@ class Session:
             **kwargs: Arbitrary keyword arguments.
 
         Raises:
-            TLSClientExeption: Error in shared library.
+            RequestError: Error in shared library.
 
         Returns:
             A response object.
@@ -518,7 +518,7 @@ class Session:
             **kwargs: Arbitrary keyword arguments.
 
         Raises:
-            TLSClientExeption: Error in shared library.
+            RequestError: Error in shared library.
 
         Returns:
             A response object.
@@ -533,7 +533,7 @@ class Session:
             **kwargs: Arbitrary keyword arguments.
 
         Raises:
-            TLSClientExeption: Error in shared library.
+            RequestError: Error in shared library.
 
         Returns:
             A response object.
@@ -556,7 +556,7 @@ class Session:
             **kwargs: Arbitrary keyword arguments.
 
         Raises:
-            TLSClientExeption: Error in shared library.
+            RequestError: Error in shared library.
 
         Returns:
             A response object.
@@ -581,7 +581,7 @@ class Session:
             **kwargs: Arbitrary keyword arguments.
 
         Raises:
-            TLSClientExeption: Error in shared library.
+            RequestError: Error in shared library.
 
         Returns:
             A response object.
@@ -606,7 +606,7 @@ class Session:
             **kwargs: Arbitrary keyword arguments.
 
         Raises:
-            TLSClientExeption: Error in shared library.
+            RequestError: Error in shared library.
 
         Returns:
             A response object.
@@ -623,7 +623,7 @@ class Session:
             **kwargs: Arbitrary keyword arguments.
 
         Raises:
-            TLSClientExeption: Error in shared library.
+            RequestError: Error in shared library.
 
         Returns:
             A response object.
@@ -980,7 +980,14 @@ class Session:
     def close(
         self,
     ) -> Any:
-        """Close session."""
+        """Close session.
+
+        Raises:
+            self.build_close_error: A subtype of CloseError
+
+        Returns:
+            Close response object.
+        """
         close_session_payload = {"sessionId": self._session_id}
 
         # this is a pointer to the response

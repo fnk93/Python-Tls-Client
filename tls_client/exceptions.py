@@ -16,7 +16,7 @@ class RequestError(IOError):
 
 
 class GetCookieError(IOError):
-    """There was an ambiguous exception that occurred while handling your request."""
+    """There was an ambiguous exception that occurred while handling get cookies."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize GetCookieError with `request` and `response` objects."""
@@ -27,10 +27,10 @@ class GetCookieError(IOError):
 
 
 class CloseError(IOError):
-    """There was an ambiguous exception that occurred while handling your request."""
+    """There was an ambiguous exception that occurred while handling session close."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize GetCookieError with `request` and `response` objects."""
+        """Initialize CloseError with `request` and `response` objects."""
         response = kwargs.pop("response", None)
         self.response = response
         self.request = kwargs.pop("request", None)
