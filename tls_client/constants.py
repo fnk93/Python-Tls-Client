@@ -2,4 +2,4 @@
 from __future__ import annotations
 
 
-SHARED_LIB_VERSION = "1.3.0"
+SHARED_LIB_VERSION = "1.3.1"
