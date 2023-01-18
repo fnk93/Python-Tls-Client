@@ -12,6 +12,13 @@
 # tls-client: https://github.com/bogdanfinn/tls-client
 # requests: https://github.com/psf/requests
 
+from tls_client.api import delete
+from tls_client.api import get
+from tls_client.api import head
+from tls_client.api import options
+from tls_client.api import patch
+from tls_client.api import post
+from tls_client.api import put
 from tls_client.exceptions import CloseError
 from tls_client.exceptions import GetCookieError
 from tls_client.exceptions import RequestError
@@ -20,6 +27,13 @@ from tls_client.sessions import Session
 
 
 __all__ = [
+    "delete",
+    "get",
+    "head",
+    "options",
+    "patch",
+    "post",
+    "put",
     "CloseError",
     "GetCookieError",
     "RequestError",
