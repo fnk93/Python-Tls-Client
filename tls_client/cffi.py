@@ -25,8 +25,7 @@ else:
     if machine() == "aarch64":
         file_arch = "arm64"
     elif "x86" in machine():
-        file_arch = "x86"
-        raise NotImplementedError()
+        file_arch = "alpine-amd64"
     else:
         file_arch = "ubuntu-amd64"
 
