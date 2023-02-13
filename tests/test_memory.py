@@ -4,6 +4,8 @@ import asyncio
 import logging
 import os
 
+from time import time
+
 import psutil
 
 import tls_client
@@ -28,6 +30,7 @@ logger.info("Setup logger.")
 
 async def create_and_run_sessions(ticks: int = 0):
     i = 0
+    start = time()
     while True and ticks > 0:
         i = i + 1
         client_identifier = "chrome_107"
@@ -50,6 +53,15 @@ async def create_and_run_sessions(ticks: int = 0):
         # request(json.dumps(requestPayload).encode('utf-8'))
         process = psutil.Process(os.getpid())
         logger.info(f"{process.memory_info().rss / 1024 / 1024} MB used.")
+        io_stats = process.io_counters()
+        read_ops_per_sec = io_stats.read_count / (time() - start)
+        read_kb_per_sec = io_stats.read_bytes / 1024 / (time() - start)
+        write_ops_per_sec = io_stats.write_count / (time() - start)
+        write_kb_per_sec = io_stats.write_bytes / 1024 / (time() - start)
+        logger.info(
+            f"Read Ops {read_ops_per_sec} Ops/s | Write Ops {write_ops_per_sec} Ops/s |"
+            f" Read {read_kb_per_sec} kb/s | Write {write_kb_per_sec} kb/s"
+        )
         logger.info(session.close())
         await asyncio.sleep(5)
         ticks -= 1
@@ -57,6 +69,7 @@ async def create_and_run_sessions(ticks: int = 0):
 
 async def run_raw_requests(ticks: int = 0):
     i = 0
+    start = time()
     while True and ticks > 0:
         i = i + 1
         client_identifier = "chrome_107"
@@ -85,6 +98,15 @@ async def run_raw_requests(ticks: int = 0):
         # request(json.dumps(requestPayload).encode('utf-8'))
         process = psutil.Process(os.getpid())
         logger.info(f"{process.memory_info().rss / 1024 / 1024} MB used.")
+        io_stats = process.io_counters()
+        read_ops_per_sec = io_stats.read_count / (time() - start)
+        read_kb_per_sec = io_stats.read_bytes / 1024 / (time() - start)
+        write_ops_per_sec = io_stats.write_count / (time() - start)
+        write_kb_per_sec = io_stats.write_bytes / 1024 / (time() - start)
+        logger.info(
+            f"Read Ops {read_ops_per_sec} Ops/s | Write Ops {write_ops_per_sec} Ops/s |"
+            f" Read {read_kb_per_sec} kb/s | Write {write_kb_per_sec} kb/s"
+        )
         # logger.info(session.close())
         await asyncio.sleep(5)
         ticks -= 1
